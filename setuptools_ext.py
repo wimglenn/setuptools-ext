@@ -30,7 +30,7 @@ prepare_metadata_for_build_wheel = setuptools.build_meta.prepare_metadata_for_bu
 
 def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
     project = toml.loads(Path("pyproject.toml").read_text())
-    ours = project["tool"]["setuptools-ext"]
+    ours = project.get("tool", {}).get("setuptools-ext", {})
     extra_metadata = {}
     for field in allowed_fields:
         val = ours.pop(field.lower(), None)
