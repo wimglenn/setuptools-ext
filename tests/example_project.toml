@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools-ext"]
+build-backend = "setuptools_ext"
+
+[project]
+name = "example-proj"
+authors = [
+    {name = "Wim Glenn"},
+    {email = "hey@wimglenn.com"},
+]
+description = "example summary"
+readme = "README.rst"
+version = "0.1"
+license = {text = "MIT"}
+
+[project.urls]
+homepage = "https://example.org/"
+
+[tool.setuptools-ext]
+requires-external = [
+    "C",
+    "libpng (>=1.5)",
+    'make; sys_platform != "win32"'
+]
+supported-platform = ["RedHat 8.3"]

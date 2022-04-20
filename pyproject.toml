@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "setuptools-ext"
+description = "Extension of setuptools to support all core metadata fields"
+authors = [
+    {name = "Wim Glenn"},
+    {email = "hey@wimglenn.com"},
+]
+readme = "README.rst"
+keywords = ["setuptools", "packaging", "metadata"]
+license = {text = "MIT"}
+dependencies = [
+    "setuptools >= 61.0.0",
+    "toml; python_version<'3.11'",
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-cov",
+    "wimpy",
+]
+
+[project.urls]
+homepage = "https://github.com/wimglenn/setuptools-ext"
+
+[tool.setuptools.dynamic]
+version = {attr = "setuptools_ext.__version__"}
