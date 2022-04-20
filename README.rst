@@ -18,8 +18,8 @@
 setuptools-ext
 ==============
 
-This is a `PEP 517 Build backend interface`_ supporting for fields in the `Core metadata specifications`_ which are otherwise difficult to provide using existing tools.
-Specifically, it allows specifying those fields which are marked with "—" in the rightmost column of the table below in a ``[tool.setuptools-ext]`` section of ``pyproject.toml``.
+This is a `PEP 517 Build backend interface`_ supporting fields in the `Core metadata specifications`_ which are otherwise difficult to provide using existing tools.
+Specifically, it allows declaring those fields marked with an "—" in the rightmost column of the table below by specifying them in a ``[tool.setuptools-ext]`` section of ``pyproject.toml``.
 The backend otherwise functions identically to ``setuptools.build_meta``, and is in fact a drop-in replacement for the default setuptools build backend.
 
 Setuptools_ lacks a way to specify some fields, despite their validity in Python package metadata according to the spec.
@@ -85,14 +85,14 @@ Reference links for the info above:
 Usage
 -----
 
-To offer a simple example, adding the ``Requires-External`` field three times, producing these lines in the ``.dist-info/METADATA`` file:
+To offer a simple example, if you want to add a ``Supported-Platform`` and the ``Requires-External`` field three times, producing these lines in the ``.dist-info/METADATA`` file:
 
 .. code-block::
 
+   Supported-Platform: RedHat 8.3
    Requires-External: C
    Requires-External: libpng (>=1.5)
    Requires-External: make; sys_platform != "win32"
-   Supported-Platform: RedHat 8.3
 
 You would configure the tool like this in ``pyproject.toml``, specifying a build dependency on ``setuptools-ext`` and then adding the fields in a ``[tool.setuptools-ext]`` section:
 
@@ -105,16 +105,16 @@ You would configure the tool like this in ``pyproject.toml``, specifying a build
    ...
 
    [tool.setuptools-ext]
+   supported-platform = [
+       "RedHat 8.3",
+   ]
    requires-external = [
        "C",
        "libpng (>=1.5)",
        'make; sys_platform != "win32"'
    ]
-   supported-platform = [
-       "RedHat 8.3",
-   ]
 
-Those fields may then be consumed by automated tooling for building RPM packages with system dependencies, for example.
+The metadata fields may then be consumed by automated tooling for building RPM packages with system dependencies, for example.
 
 *Note:* This package does not `add new keyword arguments`_ to ``setup.py`` (that's out of scope for a PEP 517 build backend).
 
