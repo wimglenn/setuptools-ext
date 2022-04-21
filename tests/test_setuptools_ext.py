@@ -24,16 +24,15 @@ Metadata-Version: 2.1
 Name: example-proj
 Version: 0.1
 Summary: example summary
-Home-page: https://example.org/
 Author: Wim Glenn
 Author-email: hey@wimglenn.com
 License: MIT
 Project-URL: homepage, https://example.org/
 Description-Content-Type: text/x-rst
-Supported-Platform: RedHat 8.3
 Requires-External: C
 Requires-External: libpng (>=1.5)
 Requires-External: make; sys_platform != "win32"
+Supported-Platform: RedHat 8.3
 
 this is the first line of the README.rst file
 this is the second line of the README.rst file

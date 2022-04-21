@@ -1,5 +1,5 @@
 """Extension of setuptools to support all core metadata fields"""
-__version__ = "0.1"
+__version__ = "0.2"
 
 import base64
 import email
@@ -14,14 +14,14 @@ try:
 except ImportError:
     import toml
 
-allowed_fields = [
+allowed_fields = {x.casefold(): x for x in [
     "Platform",
     "Supported-Platform",
     "Download-URL",
     "Requires-External",
     "Provides-Dist",
     "Obsoletes-Dist",
-]
+]}
 
 get_requires_for_build_sdist = setuptools.build_meta.get_requires_for_build_sdist
 get_requires_for_build_wheel = setuptools.build_meta.get_requires_for_build_wheel
@@ -32,12 +32,16 @@ def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
     project = toml.loads(Path("pyproject.toml").read_text())
     ours = project.get("tool", {}).get("setuptools-ext", {})
     extra_metadata = {}
-    for field in allowed_fields:
-        val = ours.pop(field.lower(), None)
-        if val:
-            extra_metadata[field] = val
-    for key, val in ours.items():
-        print(f"WARNING: ignored an unsupported option {key} = {val}")
+    for key, vals in ours.items():
+        try:
+            header = allowed_fields[key.casefold()]
+        except KeyError:
+            print(f"WARNING: ignored an unsupported option {key} = {vals}")
+            continue
+        if isinstance(vals, str):
+            print(f"WARNING: coercing the value of {key} from str to list")
+            vals = [vals]
+        extra_metadata[header] = vals
     whl = setuptools.build_meta.build_wheel(wheel_directory, config_settings, metadata_directory)
     if extra_metadata:
         rewrite_whl(Path(wheel_directory) / whl, extra_metadata)
@@ -51,11 +55,16 @@ def build_sdist(sdist_directory, config_settings=None):
 
 def rewrite_metadata(data, extra_metadata):
     pkginfo = email.message_from_bytes(data)
-    if pkginfo.get_all("Platform") == ["UNKNOWN"]:
-        # delete this annoying kv that distutils seems to put in there for no reason
-        del pkginfo["Platform"]
-    if pkginfo["License"] == "UNKNOWN":
-        del pkginfo["License"]
+    # delete some annoying kv that distutils seems to put in there for no reason
+    for key in dict(pkginfo):
+        if pkginfo.get_all(key) == ["UNKNOWN"]:
+            if key.casefold() not in ["name", "version"]:
+                del pkginfo[key]
+    # dodge https://github.com/pypa/warehouse/issues/11220
+    homepage = pkginfo.get("Home-page")
+    if homepage is not None:
+        if "homepage, {}".format(homepage) in pkginfo.get_all("Project-URL", []):
+            del pkginfo["Home-page"]
     for key, vals in extra_metadata.items():
         already_present = pkginfo.get_all(key, [])
         for val in vals:
