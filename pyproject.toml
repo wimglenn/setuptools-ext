@@ -10,6 +10,7 @@ authors = [
     {email = "hey@wimglenn.com"},
 ]
 readme = "README.rst"
+requires-python = ">= 3.6"
 keywords = ["setuptools", "packaging", "metadata"]
 license = {text = "MIT"}
 dependencies = [
