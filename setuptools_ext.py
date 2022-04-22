@@ -75,7 +75,7 @@ def rewrite_metadata(data, extra_metadata):
     new_headers = extra_metadata.items()
     if PY2:
         new_headers.sort()
-    for key, vals in sorted(extra_metadata.items()):
+    for key, vals in new_headers:
         already_present = pkginfo.get_all(key, [])
         for val in vals:
             if val not in already_present:
