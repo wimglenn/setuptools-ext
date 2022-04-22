@@ -3,9 +3,6 @@
 .. |pypi| image:: https://img.shields.io/pypi/v/setuptools-ext.svg
 .. _pypi: https://pypi.org/project/setuptools-ext
 
-.. |pyversions| image:: https://img.shields.io/pypi/pyversions/setuptools-ext.svg
-.. _pyversions:
-
 .. |actions| image:: https://github.com/wimglenn/setuptools-ext/actions/workflows/tests.yml/badge.svg
 .. _actions: https://github.com/wimglenn/setuptools-ext/actions/workflows/tests.yml/
 
