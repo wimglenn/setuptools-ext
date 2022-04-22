@@ -1,4 +1,4 @@
-|pypi|_ |pyversions|_ |actions|_ |codecov|_ |womm|_
+|pypi|_ |actions|_ |codecov|_ |womm|_
 
 .. |pypi| image:: https://img.shields.io/pypi/v/setuptools-ext.svg
 .. _pypi: https://pypi.org/project/setuptools-ext
