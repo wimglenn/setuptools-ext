@@ -13,9 +13,10 @@ readme = "README.rst"
 keywords = ["setuptools", "packaging", "metadata"]
 license = {text = "MIT"}
 dependencies = [
-    "setuptools >= 61.0.0",
-    "toml; python_version<'3.11'",
-    "pathlib2; python_version<'3.5'",
+    "setuptools >= 61.0.0; python_version >= '3.7'",
+    "setuptools",
+    "toml; python_version < '3.11'",
+    "pathlib2; python_version < '3.5'",
 ]
 dynamic = ["version"]
 
@@ -27,7 +28,7 @@ test = [
 ]
 
 [project.urls]
-homepage = "https://github.com/wimglenn/setuptools-ext"
+Homepage = "https://github.com/wimglenn/setuptools-ext"
 
 [tool.setuptools.dynamic]
 version = {attr = "setuptools_ext.__version__"}
