@@ -10,12 +10,12 @@ authors = [
     {email = "hey@wimglenn.com"},
 ]
 readme = "README.rst"
-requires-python = ">= 3.6"
 keywords = ["setuptools", "packaging", "metadata"]
 license = {text = "MIT"}
 dependencies = [
     "setuptools >= 61.0.0",
     "toml; python_version<'3.11'",
+    "pathlib2; python_version<'3.5'",
 ]
 dynamic = ["version"]
 
@@ -24,7 +24,6 @@ test = [
     "pytest",
     "pytest-cov",
     "wheel",
-    "wimpy",
 ]
 
 [project.urls]
