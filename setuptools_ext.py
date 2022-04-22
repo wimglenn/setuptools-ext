@@ -1,23 +1,33 @@
 """Extension of setuptools to support all core metadata fields"""
-__version__ = "0.2"
+from __future__ import unicode_literals
 
 import base64
 import email
 import hashlib
-from pathlib import Path
+import sys
 from zipfile import ZipFile
-
 from setuptools.build_meta import build_wheel as orig_build_wheel
 from setuptools.build_meta import *
 
+try:
+    from pathlib import Path
+except ImportError:
+    from pathlib2 import Path
 try:
     # stdlib Python 3.11+
     import tomllib as toml
 except ImportError:
     import toml
 
+
+__version__ = "0.3"
+
+
+PY2 = sys.version_info < (3,)
+
+
 allowed_fields = {
-    x.casefold(): x
+    x.lower(): x
     for x in [
         "Platform",
         "Supported-Platform",
@@ -35,12 +45,13 @@ def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
     extra_metadata = {}
     for key, vals in ours.items():
         try:
-            header = allowed_fields[key.casefold()]
+            header = allowed_fields[key.lower()]
         except KeyError:
-            print(f"WARNING: ignored an unsupported option {key} = {vals}")
+            print("WARNING: ignored an unsupported option {} = {}".format(key, vals))
             continue
-        if isinstance(vals, str):
-            print(f"WARNING: coercing the value of {key} from str to list")
+        if not isinstance(vals, list):
+            t = type(vals).__name__
+            print("WARNING: coercing the value of {} from {} to list".format(key, t))
             vals = [vals]
         extra_metadata[header] = vals
     whl = orig_build_wheel(wheel_directory, config_settings, metadata_directory)
@@ -50,23 +61,27 @@ def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
 
 
 def rewrite_metadata(data, extra_metadata):
-    pkginfo = email.message_from_bytes(data)
+    pkginfo = email.message_from_string(data.decode())
     # delete some annoying kv that distutils seems to put in there for no reason
     for key in dict(pkginfo):
         if pkginfo.get_all(key) == ["UNKNOWN"]:
-            if key.casefold() not in ["name", "version"]:
+            if key.lower() not in ["metadata-version", "name", "version"]:
                 del pkginfo[key]
     # dodge https://github.com/pypa/warehouse/issues/11220
     homepage = pkginfo.get("Home-page")
     if homepage is not None:
         if "homepage, {}".format(homepage) in pkginfo.get_all("Project-URL", []):
             del pkginfo["Home-page"]
-    for key, vals in extra_metadata.items():
+    new_headers = extra_metadata.items()
+    if PY2:
+        new_headers.sort()
+    for key, vals in sorted(extra_metadata.items()):
         already_present = pkginfo.get_all(key, [])
         for val in vals:
             if val not in already_present:
                 pkginfo.add_header(key, val)
-    return pkginfo.as_bytes()
+    result = pkginfo.as_string() if PY2 else pkginfo.as_bytes()
+    return result
 
 
 def rewrite_record(data, new_line):
@@ -91,7 +106,7 @@ def rewrite_whl(path, extra_metadata):
     # generated .whl with our modifications
     tmppath = path.parent.joinpath("." + path.name)
     checksum = record = None
-    with ZipFile(path, "r") as z_in, ZipFile(tmppath, "w") as z_out:
+    with ZipFile(str(path), "r") as z_in, ZipFile(str(tmppath), "w") as z_out:
         z_out.comment = z_in.comment
         for zinfo in z_in.infolist():
             data = z_in.read(zinfo.filename)
@@ -111,8 +126,3 @@ def rewrite_whl(path, extra_metadata):
             z_out.writestr(record_info, record_data)
     path.write_bytes(tmppath.read_bytes())
     tmppath.unlink()
-
-
-def rewrite_sdist(path, extra_metadata):
-    # TODO: find out why there are two different PKG-INFO file in the .tar.gz ?!
-    ...
