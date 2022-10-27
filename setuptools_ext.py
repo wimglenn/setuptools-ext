@@ -20,9 +20,6 @@ except ImportError:
     import toml
 
 
-__version__ = "0.5"
-
-
 PY2 = sys.version_info < (3,)
 
 

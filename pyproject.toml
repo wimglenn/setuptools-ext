@@ -4,6 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "setuptools-ext"
+version = "0.5"
 description = "Extension of setuptools to support all core metadata fields"
 authors = [
     {name = "Wim Glenn"},
@@ -18,7 +19,6 @@ dependencies = [
     "toml; python_version < '3.11'",
     "pathlib2; python_version < '3.5'",
 ]
-dynamic = ["version"]
 
 [project.optional-dependencies]
 test = [
@@ -29,6 +29,3 @@ test = [
 
 [project.urls]
 Homepage = "https://github.com/wimglenn/setuptools-ext"
-
-[tool.setuptools.dynamic]
-version = {attr = "setuptools_ext.__version__"}
