@@ -82,7 +82,6 @@ Supported-Platform: RedHat 8.3
 
 this is the first line of the README.rst file
 this is the second line of the README.rst file
-
 """
 
 
