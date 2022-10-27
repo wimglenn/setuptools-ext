@@ -20,7 +20,7 @@ except ImportError:
     import toml
 
 
-__version__ = "0.4"
+__version__ = "0.5"
 
 
 PY2 = sys.version_info < (3,)
@@ -67,11 +67,6 @@ def rewrite_metadata(data, extra_metadata):
         if pkginfo.get_all(key) == ["UNKNOWN"]:
             if key.lower() not in ["metadata-version", "name", "version"]:
                 del pkginfo[key]
-    # dodge https://github.com/pypa/warehouse/issues/11220
-    homepage = pkginfo.get("Home-page")
-    if homepage is not None:
-        if "homepage, {}".format(homepage) in pkginfo.get_all("Project-URL", []):
-            del pkginfo["Home-page"]
     new_headers = extra_metadata.items()
     if PY2:
         new_headers.sort()
