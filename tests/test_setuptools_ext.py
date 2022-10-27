@@ -103,4 +103,4 @@ def test_build_wheel(in_source_tree):
     whl = setuptools_ext.build_wheel(wheel_directory=str(in_source_tree))
     with zipfile.ZipFile(str(in_source_tree / whl)) as zf:
         txt = zf.read("example_proj-0.1.dist-info/METADATA").decode()
-    assert txt == expected_metadata
+    assert txt.rstrip() == expected_metadata.rstrip()
