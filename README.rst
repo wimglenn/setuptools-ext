@@ -6,7 +6,7 @@
 .. |actions| image:: https://github.com/wimglenn/setuptools-ext/actions/workflows/tests.yml/badge.svg
 .. _actions: https://github.com/wimglenn/setuptools-ext/actions/workflows/tests.yml/
 
-.. |codecov| image:: https://codecov.io/gh/wimglenn/setuptools-ext/branch/master/graph/badge.svg
+.. |codecov| image:: https://codecov.io/gh/wimglenn/setuptools-ext/branch/main/graph/badge.svg
 .. _codecov: https://codecov.io/gh/wimglenn/setuptools-ext
 
 .. |womm| image:: https://cdn.rawgit.com/nikku/works-on-my-machine/v0.2.0/badge.svg
