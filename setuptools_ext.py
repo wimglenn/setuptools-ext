@@ -35,11 +35,11 @@ def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
         try:
             header = allowed_fields[key.lower()]
         except KeyError:
-            print("WARNING: ignored an unsupported option {} = {}".format(key, vals))
+            print(f"WARNING: ignored an unsupported option {key} = {vals}")
             continue
         if not isinstance(vals, list):
             t = type(vals).__name__
-            print("WARNING: coercing the value of {} from {} to list".format(key, t))
+            print(f"WARNING: coercing the value of {key} from {t} to list")
             vals = [vals]
         extra_metadata[header] = vals
     whl = orig_build_wheel(wheel_directory, config_settings, metadata_directory)
@@ -96,7 +96,7 @@ def rewrite_whl(path, extra_metadata):
                 data = rewrite_metadata(data, extra_metadata)
                 digest = hashlib.sha256(data).digest()
                 checksum = base64.urlsafe_b64encode(digest).rstrip(b"=").decode()
-                new_line = "{},sha256={},{}".format(zinfo.filename, checksum, len(data))
+                new_line = f"{zinfo.filename},sha256={checksum},{len(data)}"
             if zinfo.filename.endswith(".dist-info/RECORD"):
                 record = zinfo, data
                 continue
