@@ -132,3 +132,25 @@ def test_build_wheel_setup_cfg(in_source_tree):
     with zipfile.ZipFile(str(in_source_tree / whl)) as zf:
         txt = zf.read("example_proj-0.1.dist-info/METADATA").decode()
     assert txt.rstrip() == expected_metadata.rstrip()
+
+
+in_bytes = b"""\
+Metadata-Version: 2.1
+Name: foo
+Platform: UNKNOWN
+Version: 1.0
+
+"""
+
+
+expected_out_bytes = b"""\
+Metadata-Version: 2.1
+Name: foo
+Version: 1.0
+
+"""
+
+
+def test_drop_unknown():
+    out_bytes = setuptools_ext.rewrite_metadata(in_bytes, {})
+    assert out_bytes == expected_out_bytes
