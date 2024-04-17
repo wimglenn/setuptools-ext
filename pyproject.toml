@@ -4,7 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "setuptools-ext"
-version = "0.5"
+version = "0.6"
+requires-python = ">= 3.7"
 description = "Extension of setuptools to support all core metadata fields"
 authors = [
     {name = "Wim Glenn"},
@@ -14,17 +15,8 @@ readme = "README.rst"
 keywords = ["setuptools", "packaging", "metadata"]
 license = {text = "MIT"}
 dependencies = [
-    "setuptools >= 61.0.0; python_version >= '3.7'",
-    "setuptools",
-    "toml; python_version < '3.11'",
-    "pathlib2; python_version < '3.5'",
-]
-
-[project.optional-dependencies]
-test = [
-    "pytest",
-    "pytest-cov",
-    "wheel",
+    "setuptools >= 61.0.0",
+    "tomli; python_version < '3.11'",
 ]
 
 [project.urls]

@@ -1,26 +1,17 @@
 """Extension of setuptools to support all core metadata fields"""
-from __future__ import unicode_literals
-
 import base64
-import email
+import email.policy
 import hashlib
-import sys
+from pathlib import Path
 from zipfile import ZipFile
-from setuptools.build_meta import build_wheel as orig_build_wheel
-from setuptools.build_meta import *
 
-try:
-    from pathlib import Path
-except ImportError:
-    from pathlib2 import Path
+from setuptools.build_meta import *
+from setuptools.build_meta import build_wheel as orig_build_wheel
 try:
     # stdlib Python 3.11+
     import tomllib as toml
 except ImportError:
-    import toml
-
-
-PY2 = sys.version_info < (3,)
+    import tomli as toml
 
 
 allowed_fields = {
@@ -65,14 +56,13 @@ def rewrite_metadata(data, extra_metadata):
             if key.lower() not in ["metadata-version", "name", "version"]:
                 del pkginfo[key]
     new_headers = extra_metadata.items()
-    if PY2:
-        new_headers.sort()
     for key, vals in new_headers:
         already_present = pkginfo.get_all(key, [])
         for val in vals:
             if val not in already_present:
                 pkginfo.add_header(key, val)
-    result = pkginfo.as_string() if PY2 else pkginfo.as_bytes()
+    policy = email.policy.Compat32(max_line_length=0)
+    result = pkginfo.as_bytes(policy=policy)
     return result
 
 

@@ -1,21 +1,18 @@
 from __future__ import unicode_literals
 
 import os
-import sys
 import zipfile
-import pytest
-import setuptools_ext
+from pathlib import Path
 
-try:
-    from pathlib import Path
-except ImportError:
-    from pathlib2 import Path
+import pytest
+
+import setuptools_ext
 
 
 here = Path(__file__).absolute().parent
 
 
-example_project = """\
+example_pyproject_full = """\
 [build-system]
 requires = ["setuptools-ext"]
 build-backend = "setuptools_ext"
@@ -30,6 +27,9 @@ description = "example summary"
 readme = "README.rst"
 version = "0.1"
 license = {text = "MIT"}
+
+[project.optional-dependencies]
+all = ["typing-extensions <5,>=4.2 ; python_version < '3.8'"]
 
 [project.urls]
 homepage = "https://example.org/"
@@ -49,7 +49,22 @@ this is the first line of the README.rst file
 this is the second line of the README.rst file"""
 
 
-# only used on py2, because setuptools doesn't support pyproject.toml metadata there
+example_pyproject_minimal = """\
+[build-system]
+requires = ["setuptools-ext"]
+build-backend = "setuptools_ext"
+
+[tool.setuptools-ext]
+requires-external = [
+    "C",
+    "libpng (>=1.5)",
+    'make; sys_platform != "win32"'
+]
+supported-platform = "RedHat 8.3"
+bogus-field = "this will be ignored"
+"""
+
+
 example_setup_cfg = """\
 [metadata]
 name = example-proj
@@ -62,6 +77,10 @@ long_description = file: README.rst
 long_description_content_type = text/x-rst
 project_urls =
     homepage = https://example.org/
+
+[options.extras_require]
+all =
+    typing-extensions <5,>=4.2 ; python_version < '3.8'
 """
 
 
@@ -75,6 +94,8 @@ Author-email: hey@wimglenn.com
 License: MIT
 Project-URL: homepage, https://example.org/
 Description-Content-Type: text/x-rst
+Provides-Extra: all
+Requires-Dist: typing-extensions <5,>=4.2 ; (python_version < "3.8") and extra == 'all'
 Requires-External: C
 Requires-External: libpng (>=1.5)
 Requires-External: make; sys_platform != "win32"
@@ -87,10 +108,7 @@ this is the second line of the README.rst file
 
 @pytest.fixture(autouse=True)
 def in_source_tree(tmp_path):
-    tmp_path.joinpath("pyproject.toml").write_text(example_project)
     tmp_path.joinpath("README.rst").write_text(example_readme)
-    if sys.version_info.major < 3:
-        tmp_path.joinpath("setup.cfg").write_text(example_setup_cfg)
     prev = os.getcwd()
     os.chdir(str(tmp_path))
     try:
@@ -99,7 +117,17 @@ def in_source_tree(tmp_path):
         os.chdir(prev)
 
 
-def test_build_wheel(in_source_tree):
+def test_build_wheel_pyproject_toml(in_source_tree):
+    in_source_tree.joinpath("pyproject.toml").write_text(example_pyproject_full)
+    whl = setuptools_ext.build_wheel(wheel_directory=str(in_source_tree))
+    with zipfile.ZipFile(str(in_source_tree / whl)) as zf:
+        txt = zf.read("example_proj-0.1.dist-info/METADATA").decode()
+    assert txt.rstrip() == expected_metadata.rstrip()
+
+
+def test_build_wheel_setup_cfg(in_source_tree):
+    in_source_tree.joinpath("pyproject.toml").write_text(example_pyproject_minimal)
+    in_source_tree.joinpath("setup.cfg").write_text(example_setup_cfg)
     whl = setuptools_ext.build_wheel(wheel_directory=str(in_source_tree))
     with zipfile.ZipFile(str(in_source_tree / whl)) as zf:
         txt = zf.read("example_proj-0.1.dist-info/METADATA").decode()
