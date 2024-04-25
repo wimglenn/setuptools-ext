@@ -51,6 +51,9 @@ def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
 
 
 def rewrite_metadata(data, extra_metadata):
+    """
+    Rewrite the METADATA file to include the given additional metadata.
+    """
     pkginfo = email.message_from_string(data.decode())
     # delete some annoying kv that distutils seems to put in there for no reason
     for key in dict(pkginfo):
@@ -68,18 +71,15 @@ def rewrite_metadata(data, extra_metadata):
     return result
 
 
-def rewrite_record(data, new_line):
-    lines = []
-    for line in data.decode().splitlines():
-        fname = line.split(",")[0]
-        if fname.endswith(".dist-info/METADATA"):
-            line = new_line
-        lines.append(line)
-    return "\n".join(lines).encode()
-
-
 class WheelRecord:
-    # See https://packaging.python.org/en/latest/specifications/binary-distribution-format/#signed-wheel-files
+    """
+    Represents the RECORD file of a wheel, which can be updated with new checksums
+    using the record_file method.
+
+    See also the (limited) spec on RECORD at
+    https://packaging.python.org/en/latest/specifications/binary-distribution-format/#signed-wheel-files
+    """
+    # See
     def __init__(self, record_content: str = ""):
         #: Records mapping filename to (hash, length) tuples.
         self._records: typing.Dict[str, typing.Tuple[str, str]] = {}
@@ -106,6 +106,10 @@ class WheelRecord:
         self._records[filename] = (f'sha256={checksum}', str(len(file_content)))
 
     def record_contents(self) -> str:
+        """
+        Output the representation of this WheelRecord as a string, suitable for
+        writing to a RECORD file.
+        """
         contents = []
         for path, (file_hash, length) in self._records.items():
             contents.append(f"{path},{file_hash},{length}")
@@ -135,13 +139,6 @@ class WheelModifier:
             return self._updates[filename][1]
         else:
             return self._wheel_zipfile.read(filename)
-
-    def namelist(self) -> typing.List[str]:
-        names = self._wheel_zipfile.namelist()
-        for filename in self._updates:
-            if filename not in names:
-                names.append(filename)
-        return names
 
     def zipinfo(self, filename: str) -> zipfile.ZipInfo:
         if filename in self._updates:
