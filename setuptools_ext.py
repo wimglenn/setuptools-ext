@@ -1,15 +1,17 @@
 """Extension of setuptools to support all core metadata fields"""
+
 import base64
 import email.policy
 import hashlib
-from pathlib import Path
-import typing
 import shutil
 import sys
+import typing
 import zipfile
+from pathlib import Path
 
 from setuptools.build_meta import *  # noqa
 from setuptools.build_meta import build_wheel as orig_build_wheel
+
 if sys.version_info >= (3, 11):
     import tomllib
 else:
@@ -79,20 +81,22 @@ class WheelRecord:
     See also the (limited) spec on RECORD at
     https://packaging.python.org/en/latest/specifications/binary-distribution-format/#signed-wheel-files
     """
-    # See
+
     def __init__(self, record_content: str = ""):
         #: Records mapping filename to (hash, length) tuples.
         self._records: typing.Dict[str, typing.Tuple[str, str]] = {}
         self.update_from_record(record_content)
 
-    def update_from_record(self, record_content: typing.Union[str, "WheelRecord"]) -> None:
+    def update_from_record(
+        self, record_content: typing.Union[str, "WheelRecord"]
+    ) -> None:
         """
         Update this WheelRecord given another WheelRecord, or RECORD contents
         """
         if isinstance(record_content, WheelRecord):
             record_content = record_content.record_contents()
         for line in record_content.splitlines():
-            path, file_hash, length = line.split(',')
+            path, file_hash, length = line.split(",")
             self._records[path] = (file_hash, length)
 
     def record_file(self, filename, file_content: typing.Union[bytes, str]):
@@ -100,10 +104,10 @@ class WheelRecord:
         Record the filename and appropriate digests of its contents
         """
         if isinstance(file_content, str):
-            file_content = file_content.encode('utf-8')
+            file_content = file_content.encode("utf-8")
         digest = hashlib.sha256(file_content).digest()
         checksum = base64.urlsafe_b64encode(digest).rstrip(b"=").decode()
-        self._records[filename] = (f'sha256={checksum}', str(len(file_content)))
+        self._records[filename] = (f"sha256={checksum}", str(len(file_content)))
 
     def record_contents(self) -> str:
         """
@@ -113,15 +117,15 @@ class WheelRecord:
         contents = []
         for path, (file_hash, length) in self._records.items():
             contents.append(f"{path},{file_hash},{length}")
-        return '\n'.join(contents)
+        return "\n".join(contents)
 
 
 class WheelModifier:
     """
     Representation of an existing wheel with lazily modified contents that
     can be written on-demand with the write_wheel method.
-
     """
+
     def __init__(self, wheel_zipfile: zipfile.ZipFile):
         self._wheel_zipfile = wheel_zipfile
         # Track updated file contents.
@@ -132,7 +136,7 @@ class WheelModifier:
             # TODO: We could use the filename of the zipfile... but we don't
             #  necessarily have it.
             if filename.endswith(".dist-info/METADATA"):
-                return filename.rsplit('/', 1)[0]
+                return filename.rsplit("/", 1)[0]
 
     def read(self, filename: str) -> bytes:
         if filename in self._updates:
@@ -145,7 +149,11 @@ class WheelModifier:
             return self._updates[filename][0]
         return self._wheel_zipfile.getinfo(filename)
 
-    def write(self, filename: typing.Union[str, zipfile.ZipInfo], content: bytes, ) -> None:
+    def write(
+        self,
+        filename: typing.Union[str, zipfile.ZipInfo],
+        content: bytes,
+    ) -> None:
         zinfo: zipfile.ZipInfo
         if isinstance(filename, zipfile.ZipInfo):
             zinfo = filename
@@ -154,15 +162,15 @@ class WheelModifier:
                 zinfo = self.zipinfo(filename)
             except KeyError:
                 raise ValueError(
-                    f'Unable to write filename {filename} as there is no existing '
-                    'file information in the archive. Please provide a zipinfo'
-                    'instance when writing.'
+                    f"Unable to write filename {filename} as there is no existing "
+                    "file information in the archive. Please provide a zipinfo "
+                    "instance when writing."
                 )
         self._updates[typing.cast(str, zinfo.filename)] = zinfo, content
 
     def write_wheel(self, file: typing.Union[str, Path, typing.IO[bytes]]) -> None:
         distinfo_dir = self.dist_info_dirname()
-        record_filename = f'{distinfo_dir}/RECORD'
+        record_filename = f"{distinfo_dir}/RECORD"
         orig_record = WheelRecord(self.read(record_filename).decode())
         with zipfile.ZipFile(file, "w") as z_out:
             for zinfo in self._wheel_zipfile.infolist():
@@ -196,10 +204,10 @@ def rewrite_whl(path, extra_metadata):
 
     with zipfile.ZipFile(str(path), "r") as whl_zip:
         whl = WheelModifier(whl_zip)
-        metadata_filename = f'{whl.dist_info_dirname()}/METADATA'
+        metadata_filename = f"{whl.dist_info_dirname()}/METADATA"
         metadata = rewrite_metadata(whl.read(metadata_filename), extra_metadata)
         whl.write(metadata_filename, metadata)
-        with tmppath.open('wb') as whl_fh:
+        with tmppath.open("wb") as whl_fh:
             whl.write_wheel(whl_fh)
 
     shutil.move(tmppath, path)
