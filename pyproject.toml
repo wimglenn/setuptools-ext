@@ -1,16 +1,15 @@
 [build-system]
 requires = [
-    "setuptools >= 61.0.0",
+    "setuptools >= 68.2.0",
     "tomli; python_version < '3.11'",
-    "importlib_metadata; python_version < '3.8'",
 ]
 build-backend = "setuptools_ext"
 backend-path = ["."]
 
 [project]
 name = "setuptools-ext"
-version = "0.8"
-requires-python = ">= 3.7"
+version = "0.9"
+requires-python = ">= 3.8"
 description = "Extension of setuptools to support all core metadata fields"
 authors = [
     {name = "Wim Glenn"},
@@ -20,9 +19,8 @@ readme = "README.rst"
 keywords = ["setuptools", "packaging", "metadata"]
 license = {text = "MIT"}
 dependencies = [
-    "setuptools >= 61.0.0",
+    "setuptools >= 68.2.0",
     "tomli; python_version < '3.11'",
-    "importlib_metadata; python_version < '3.8'",
 ]
 
 [project.urls]
