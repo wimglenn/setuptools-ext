@@ -3,13 +3,16 @@
 import base64
 import email.policy
 import hashlib
+import io
 import shutil
 import sys
+import tarfile
 import typing
 import zipfile
 from pathlib import Path
 
 from setuptools.build_meta import *  # noqa
+from setuptools.build_meta import build_sdist as orig_build_sdist
 from setuptools.build_meta import build_wheel as orig_build_wheel
 
 if sys.version_info >= (3, 11):
@@ -36,7 +39,7 @@ allowed_fields = {
 }
 
 
-def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
+def parse_extra_metadata():
     project = tomllib.loads(Path("pyproject.toml").read_text())
     ours = project.get("tool", {}).get("setuptools-ext", {})
     extra_metadata = {}
@@ -51,6 +54,11 @@ def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
             print(f"WARNING: coercing the value of {key} from {t} to list")
             vals = [vals]
         extra_metadata[header] = vals
+    return extra_metadata
+
+
+def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
+    extra_metadata = parse_extra_metadata()
     whl = orig_build_wheel(wheel_directory, config_settings, metadata_directory)
     rewrite_whl(Path(wheel_directory) / whl, extra_metadata)
     return whl
@@ -147,8 +155,6 @@ class WheelModifier:
 
     def dist_info_dirname(self):
         for filename in self._wheel_zipfile.namelist():
-            # TODO: We could use the filename of the zipfile... but we don't
-            #  necessarily have it.
             if filename.endswith(".dist-info/METADATA"):
                 return filename.rsplit("/", 1)[0]
 
@@ -231,3 +237,32 @@ def rewrite_whl(path, extra_metadata):
             whl.write_wheel(whl_fh)
 
     shutil.move(tmppath, path)
+
+
+def rewrite_sdist(path, extra_metadata):
+    orig_sdist = path.parent.joinpath("orig_" + path.name)
+    shutil.move(path, orig_sdist)
+    with tarfile.open(orig_sdist, "r:gz") as tf_in:
+        with tarfile.open(path, "w:gz", format=tarfile.PAX_FORMAT) as tf_out:
+            for tarinfo in tf_in.getmembers():
+                obj = tf_in.extractfile(tarinfo)
+                if obj is None:
+                    tf_out.addfile(tarinfo)
+                    continue
+                content = obj.read()
+                if tarinfo.name.endswith("/PKG-INFO"):
+                    content = rewrite_metadata(content, extra_metadata)
+                    tarinfo.size = len(content)
+                tf_out.addfile(tarinfo, io.BytesIO(content))
+    # orig_sdist.unlink()
+
+
+def build_sdist(sdist_directory, config_settings=None):
+    result = orig_build_sdist(sdist_directory, config_settings=config_settings)
+    extra_metadata = parse_extra_metadata()
+    if not extra_metadata:
+        # nothing to do
+        return result
+    path = Path(sdist_directory) / result
+    rewrite_sdist(path, extra_metadata)
+    return result
