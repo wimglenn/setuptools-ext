@@ -1,5 +1,4 @@
-from __future__ import unicode_literals
-
+# coding: utf-8
 import os
 import zipfile
 from pathlib import Path
@@ -46,7 +45,7 @@ bogus-field = "this will be ignored"
 
 example_readme = """\
 this is the first line of the README.rst file
-this is the second line of the README.rst file — and it has an EM DASH in it"""
+this is the second line of the README.rst file \N{EM DASH} and it has non-ascii in it"""
 
 
 example_pyproject_minimal = """\
@@ -102,7 +101,7 @@ Requires-External: make; sys_platform != "win32"
 Supported-Platform: RedHat 8.3
 
 this is the first line of the README.rst file
-this is the second line of the README.rst file — and it has an EM DASH in it
+this is the second line of the README.rst file \N{EM DASH} and it has non-ascii in it
 """
 
 
