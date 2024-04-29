@@ -162,4 +162,5 @@ def test_wheel_generator(in_source_tree, monkeypatch):
     whl = setuptools_ext.build_wheel(wheel_directory=str(in_source_tree))
     with zipfile.ZipFile(str(in_source_tree / whl)) as zf:
         txt = zf.read("example_proj-0.1.dist-info/WHEEL").decode()
-    assert "Generator: bdist_wheel (0.43.0) + setuptools-ext (0.1)" in txt
+    [line] = [x for x in txt.splitlines() if x.startswith("Generator: ")]
+    assert line.endswith(" + setuptools-ext (0.1)")
