@@ -97,7 +97,7 @@ class WheelRecord:
             record_content = record_content.record_contents()
         for line in record_content.splitlines():
             path, file_hash, length = line.split(",")
-            self._records[path] = (file_hash, length)
+            self._records[path] = file_hash, length
 
     def record_file(self, filename, file_content: typing.Union[bytes, str]):
         """
@@ -107,7 +107,7 @@ class WheelRecord:
             file_content = file_content.encode("utf-8")
         digest = hashlib.sha256(file_content).digest()
         checksum = base64.urlsafe_b64encode(digest).rstrip(b"=").decode()
-        self._records[filename] = (f"sha256={checksum}", str(len(file_content)))
+        self._records[filename] = f"sha256={checksum}", str(len(file_content))
 
     def record_contents(self) -> str:
         """
