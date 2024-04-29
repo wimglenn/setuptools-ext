@@ -7,7 +7,6 @@ import shutil
 import sys
 import typing
 import zipfile
-from importlib.metadata import version
 from pathlib import Path
 
 from setuptools.build_meta import *  # noqa
@@ -17,6 +16,11 @@ if sys.version_info >= (3, 11):
     import tomllib
 else:
     import tomli as tomllib
+
+if sys.version_info >= (3, 8):
+    from importlib.metadata import version
+else:
+    from importlib_metadata import version
 
 
 allowed_fields = {
