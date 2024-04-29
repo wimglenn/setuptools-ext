@@ -1,4 +1,3 @@
-# coding: utf-8
 import os
 import zipfile
 from pathlib import Path
@@ -11,7 +10,7 @@ import setuptools_ext
 here = Path(__file__).absolute().parent
 
 
-example_pyproject_full = """\
+pyproject_full = """\
 [build-system]
 requires = ["setuptools-ext"]
 build-backend = "setuptools_ext"
@@ -45,10 +44,10 @@ bogus-field = "this will be ignored"
 
 example_readme = """\
 this is the first line of the README.rst file
-this is the second line of the README.rst file \N{EM DASH} and it has non-ascii in it"""
+this is the second line of the README.rst file — and it has non-ascii in it"""
 
 
-example_pyproject_minimal = """\
+pyproject_minimal = """\
 [build-system]
 requires = ["setuptools-ext"]
 build-backend = "setuptools_ext"
@@ -101,13 +100,13 @@ Requires-External: make; sys_platform != "win32"
 Supported-Platform: RedHat 8.3
 
 this is the first line of the README.rst file
-this is the second line of the README.rst file \N{EM DASH} and it has non-ascii in it
+this is the second line of the README.rst file — and it has non-ascii in it
 """
 
 
 @pytest.fixture(autouse=True)
-def in_source_tree(tmp_path):
-    tmp_path.joinpath("README.rst").write_text(example_readme)
+def in_srctree(tmp_path):
+    tmp_path.joinpath("README.rst").write_text(example_readme, encoding="utf8")
     prev = os.getcwd()
     os.chdir(str(tmp_path))
     try:
@@ -116,19 +115,19 @@ def in_source_tree(tmp_path):
         os.chdir(prev)
 
 
-def test_build_wheel_pyproject_toml(in_source_tree):
-    in_source_tree.joinpath("pyproject.toml").write_text(example_pyproject_full)
-    whl = setuptools_ext.build_wheel(wheel_directory=str(in_source_tree))
-    with zipfile.ZipFile(str(in_source_tree / whl)) as zf:
+def test_build_wheel_pyproject_toml(in_srctree):
+    in_srctree.joinpath("pyproject.toml").write_text(pyproject_full, encoding="utf8")
+    whl = setuptools_ext.build_wheel(wheel_directory=str(in_srctree))
+    with zipfile.ZipFile(str(in_srctree / whl)) as zf:
         txt = zf.read("example_proj-0.1.dist-info/METADATA").decode()
     assert txt.rstrip() == expected_metadata.rstrip()
 
 
-def test_build_wheel_setup_cfg(in_source_tree):
-    in_source_tree.joinpath("pyproject.toml").write_text(example_pyproject_minimal)
-    in_source_tree.joinpath("setup.cfg").write_text(example_setup_cfg)
-    whl = setuptools_ext.build_wheel(wheel_directory=str(in_source_tree))
-    with zipfile.ZipFile(str(in_source_tree / whl)) as zf:
+def test_build_wheel_setup_cfg(in_srctree):
+    in_srctree.joinpath("pyproject.toml").write_text(pyproject_minimal, encoding="utf8")
+    in_srctree.joinpath("setup.cfg").write_text(example_setup_cfg, encoding="utf8")
+    whl = setuptools_ext.build_wheel(wheel_directory=str(in_srctree))
+    with zipfile.ZipFile(str(in_srctree / whl)) as zf:
         txt = zf.read("example_proj-0.1.dist-info/METADATA").decode()
     assert txt.rstrip() == expected_metadata.rstrip()
 
@@ -155,11 +154,11 @@ def test_drop_unknown():
     assert out_bytes == expected_out_bytes
 
 
-def test_wheel_generator(in_source_tree, monkeypatch):
+def test_wheel_generator(in_srctree, monkeypatch):
     monkeypatch.setattr("setuptools_ext.version", lambda distribution_name: "0.1")
-    in_source_tree.joinpath("pyproject.toml").write_text(example_pyproject_full)
-    whl = setuptools_ext.build_wheel(wheel_directory=str(in_source_tree))
-    with zipfile.ZipFile(str(in_source_tree / whl)) as zf:
+    in_srctree.joinpath("pyproject.toml").write_text(pyproject_full, encoding="utf8")
+    whl = setuptools_ext.build_wheel(wheel_directory=str(in_srctree))
+    with zipfile.ZipFile(str(in_srctree / whl)) as zf:
         txt = zf.read("example_proj-0.1.dist-info/WHEEL").decode()
     [line] = [x for x in txt.splitlines() if x.startswith("Generator: ")]
     assert line.endswith(" + setuptools-ext (0.1)")
