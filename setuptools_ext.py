@@ -250,7 +250,7 @@ def rewrite_sdist(path, extra_metadata):
                     content = rewrite_metadata(content, extra_metadata)
                     tarinfo.size = len(content)
                 tf_out.addfile(tarinfo, io.BytesIO(content))
-    # orig_sdist.unlink()
+    orig_sdist.unlink()
 
 
 def build_sdist(sdist_directory, config_settings=None):
