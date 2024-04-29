@@ -46,7 +46,7 @@ bogus-field = "this will be ignored"
 
 example_readme = """\
 this is the first line of the README.rst file
-this is the second line of the README.rst file"""
+this is the second line of the README.rst file — and it has an EM DASH in it"""
 
 
 example_pyproject_minimal = """\
@@ -102,7 +102,7 @@ Requires-External: make; sys_platform != "win32"
 Supported-Platform: RedHat 8.3
 
 this is the first line of the README.rst file
-this is the second line of the README.rst file
+this is the second line of the README.rst file — and it has an EM DASH in it
 """
 
 
@@ -154,3 +154,12 @@ Version: 1.0
 def test_drop_unknown():
     out_bytes = setuptools_ext.rewrite_metadata(in_bytes, {})
     assert out_bytes == expected_out_bytes
+
+
+def test_wheel_generator(in_source_tree, monkeypatch):
+    monkeypatch.setattr("setuptools_ext.version", lambda distribution_name: "0.1")
+    in_source_tree.joinpath("pyproject.toml").write_text(example_pyproject_full)
+    whl = setuptools_ext.build_wheel(wheel_directory=str(in_source_tree))
+    with zipfile.ZipFile(str(in_source_tree / whl)) as zf:
+        txt = zf.read("example_proj-0.1.dist-info/WHEEL").decode()
+    assert "Generator: bdist_wheel (0.43.0) + setuptools-ext (0.1)" in txt

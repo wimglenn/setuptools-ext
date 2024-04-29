@@ -1,10 +1,11 @@
 [build-system]
 requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+build-backend = "setuptools_ext"
+backend-path = ["."]
 
 [project]
 name = "setuptools-ext"
-version = "0.7"
+version = "0.8"
 requires-python = ">= 3.7"
 description = "Extension of setuptools to support all core metadata fields"
 authors = [

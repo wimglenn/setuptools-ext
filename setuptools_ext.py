@@ -7,6 +7,7 @@ import shutil
 import sys
 import typing
 import zipfile
+from importlib.metadata import version
 from pathlib import Path
 
 from setuptools.build_meta import *  # noqa
@@ -47,8 +48,7 @@ def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
             vals = [vals]
         extra_metadata[header] = vals
     whl = orig_build_wheel(wheel_directory, config_settings, metadata_directory)
-    if extra_metadata:
-        rewrite_whl(Path(wheel_directory) / whl, extra_metadata)
+    rewrite_whl(Path(wheel_directory) / whl, extra_metadata)
     return whl
 
 
@@ -56,7 +56,7 @@ def rewrite_metadata(data, extra_metadata):
     """
     Rewrite the METADATA file to include the given additional metadata.
     """
-    pkginfo = email.message_from_string(data.decode())
+    pkginfo = email.message_from_bytes(data)
     # delete some annoying kv that distutils seems to put in there for no reason
     for key in dict(pkginfo):
         if pkginfo.get_all(key) == ["UNKNOWN"]:
@@ -68,9 +68,19 @@ def rewrite_metadata(data, extra_metadata):
         for val in vals:
             if val not in already_present:
                 pkginfo.add_header(key, val)
-    policy = email.policy.Compat32(max_line_length=0)
+    policy = email.policy.EmailPolicy(refold_source="none")
     result = pkginfo.as_bytes(policy=policy)
     return result
+
+
+def rewrite_archive_metadata(orig_bytes):
+    lines = orig_bytes.splitlines()
+    for i, line in enumerate(lines):
+        if line.startswith(b"Generator: "):
+            suffix = b" + setuptools-ext (%s)"
+            line += suffix % version("setuptools-ext").encode()
+            lines[i] = line
+    return b"\n".join(lines) + b"\n"
 
 
 class WheelRecord:
@@ -204,9 +214,15 @@ def rewrite_whl(path, extra_metadata):
 
     with zipfile.ZipFile(str(path), "r") as whl_zip:
         whl = WheelModifier(whl_zip)
+
         metadata_filename = f"{whl.dist_info_dirname()}/METADATA"
         metadata = rewrite_metadata(whl.read(metadata_filename), extra_metadata)
         whl.write(metadata_filename, metadata)
+
+        archive_metadata_filename = f"{whl.dist_info_dirname()}/WHEEL"
+        archive_metadata = rewrite_archive_metadata(whl.read(archive_metadata_filename))
+        whl.write(archive_metadata_filename, archive_metadata)
+
         with tmppath.open("wb") as whl_fh:
             whl.write_wheel(whl_fh)
 
