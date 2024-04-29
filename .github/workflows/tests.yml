@@ -34,7 +34,7 @@ jobs:
       - name: Install
         run: pip install . pytest-cov wheel
       - name: Run tests for ${{ matrix.python-version }} on ${{ matrix.os }}
-        run: python -m pytest --cov=setuptools_ext
+        run: python -m pip freeze --all && python -m pytest --cov=setuptools_ext -vvv
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
